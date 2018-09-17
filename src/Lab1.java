@@ -14,6 +14,7 @@ public class Lab1 {
 	
 	
 	// Sensors  
+	public int[] sensors;
 
   public Lab1(int speed1, int speed2) {
 //    TSimInterface tsi = TSimInterface.getInstance();
@@ -35,6 +36,8 @@ public class Lab1 {
 		  System.out.println(area);
 		  semaphores.put(area, new Semaphore(1));
 	  }
+	  
+	  this.addSensors();
 	  //System.out.println("length of semaphore map: " + semaphores.size()); --> 6 
 
 	  Train train1 = new Train(1, speed1);
@@ -44,7 +47,13 @@ public class Lab1 {
 
   }
   
-  // Internal class for a train
+  private void addSensors() {
+		// TODO Auto-generated method stub
+	  
+		
+	}
+
+// Internal class for a train
   public class Train extends Thread {
 		private TSimInterface tsi;
 
@@ -102,21 +111,47 @@ public class Lab1 {
 			System.out.println(event);
 			
 			// Sensor X (after crossroad top)
-			if(event.getXpos()== 14 & event.getYpos()==7) {
-				System.out.println("in sensor pos! ");
-				
-				// set speed to 0 - backup if the semaphore blocks 
-				tsi.setSpeed(train_id, train_slowdown);
-				// try to acquire semaphore
-				semaphores.get(CriticalArea.Right);
-				semaphores.get(CriticalArea.TopStation).release();
-				// set speed
-				tsi.setSpeed(train_id, train_speed);
-				// set switch to UP
-				tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
+//			if(event.getXpos()== 14 & event.getYpos()==7) {
+//				
+//				// set speed to 0 - backup if the semaphore blocks 
+//				tsi.setSpeed(train_id, train_slowdown);
+//				// try to acquire semaphore
+//				semaphores.get(CriticalArea.Right);
+//				semaphores.get(CriticalArea.TopStation).release();
+//				// set speed
+//				tsi.setSpeed(train_id, train_speed);
+//				// set switch to UP
+//				tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
+//			}
+			
+			if(this.isEqualSensor()) {
+				// going down, next semaphor: Left
+				if(this.down) {
+					this.tryAcquire();
+					semaphores.get(CriticalArea.TopStation).release();
+					// set switch to UP
+					tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
+					tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);	
+				}else {
+					// going up, next: north station 
+				}
+
 			}
 			
 			
+		}
+
+		private boolean isEqualSensor(SensorEvent event, Sensor sensor) {
+			return event.getXpos() == sensor.x && event.getYpos() == sensor.y;
+		}
+
+		private void tryAcquire() throws CommandException {
+			// set speed to 0 - backup if the semaphore blocks 
+			tsi.setSpeed(train_id, train_slowdown);
+			// try to acquire semaphore
+			semaphores.get(CriticalArea.Right);
+			// set speed
+			tsi.setSpeed(train_id, train_speed);			
 		}
 
 	}
