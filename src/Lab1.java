@@ -8,7 +8,7 @@ public class Lab1 {
 	
 	// Semaphores for the critical areas, e.i. areas where there can only be one train at a time 
 	
-	private Map<CriticalArea, Semaphore> semaphores = new EnumMap<CriticalArea, Semaphore>(CriticalArea.class);
+	public Map<CriticalArea, Semaphore> semaphores = new EnumMap<CriticalArea, Semaphore>(CriticalArea.class);
 	//enumMap.put(Color.RED, "red");
 	//String value = enumMap.get(Color.RED);
 	
@@ -51,6 +51,7 @@ public class Lab1 {
 		private int train_id;
 		private int train_speed;
 		private boolean down;
+		private int train_slowdown = 0;
 		
 		
 		public Train(int train_id, int train_speed) {
@@ -69,6 +70,7 @@ public class Lab1 {
 		        	// train 1 starts at the topStation
 		        	this.down=true;
 		        	// get semaphore for topStation
+		        	semaphores.get(CriticalArea.TopStation).acquire();
 		        	
 		        	
 		        }
@@ -76,6 +78,8 @@ public class Lab1 {
 		        	// train 2 starts at the bottomStation
 		        	this.down=false;
 		        	// get semaphore for bottomStation
+		        	semaphores.get(CriticalArea.BottomStation).acquire();
+
 		        }
 		        
 		        // handle all sensor events
@@ -93,9 +97,24 @@ public class Lab1 {
 			} 
 		}
 
-		private void handleSensorEvent(SensorEvent event) {
+		private void handleSensorEvent(SensorEvent event) throws CommandException {
 			// TODO Auto-generated method stub
 			System.out.println(event);
+			
+			// Sensor X (after crossroad top)
+			if(event.getXpos()== 14 & event.getYpos()==7) {
+				System.out.println("in sensor pos! ");
+				
+				// set speed to 0 - backup if the semaphore blocks 
+				tsi.setSpeed(train_id, train_slowdown);
+				// try to acquire semaphore
+				semaphores.get(CriticalArea.Right);
+				semaphores.get(CriticalArea.TopStation).release();
+				// set speed
+				tsi.setSpeed(train_id, train_speed);
+				// set switch to UP
+				tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
+			}
 			
 			
 		}
