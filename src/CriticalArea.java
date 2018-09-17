@@ -1,5 +1,5 @@
 
-enum CriticalArea {
+public enum CriticalArea {
 	
 	// id from top
 	
