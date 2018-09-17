@@ -31,21 +31,24 @@ public class Train extends Thread {
 	        }
 	        
 	        // fetch all sensor events
-	        while(true) {
-	        	// sensor event 
-	            SensorEvent event = tsi.getSensor(train_id);
-	            System.out.println("Event: " + event);
-	            System.out.println("Event pos: " + event.xPos + " " + event.yPos);
-
-	        }
+	        while (!this.isInterrupted()) {
+	            //SensorEvent event = tsi.getSensor(train_id);
+	            //this.handleSensorEvent(event);
+	          }
 	      }
 	      catch (CommandException e) {
 	        e.printStackTrace();    // or only e.getMessage() for the error
 	        System.exit(1);
-	      } catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	      } //catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} 
+	}
+
+	private void handleSensorEvent(SensorEvent event) {
+		// TODO Auto-generated method stub
+		System.out.println(event);
+		
 	}
 
 }

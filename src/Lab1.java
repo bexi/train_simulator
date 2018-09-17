@@ -38,9 +38,9 @@ public class Lab1 {
 	  //System.out.println("length of semaphore map: " + semaphores.size()); --> 6 
 
 	  Train train1 = new Train(1, speed1);
-	  train1.run();
+	  train1.start();
 	  Train train2 = new Train(2, speed2);
-	  train2.run();
+	  train2.start();
 
   }
 }
