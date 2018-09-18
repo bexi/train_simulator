@@ -26,7 +26,7 @@ public class Lab1 {
 //      e.printStackTrace();    // or only e.getMessage() for the error
 //      System.exit(1);
 //    }
-	  System.out.println(CriticalArea.TopStation.id);
+	  System.out.println(CriticalArea.NorthStation.id);
 	  
 	  // Create semaphore for all critical areas
 	  // Semaphore semaphore = new Semaphore(1);
@@ -79,7 +79,7 @@ public class Lab1 {
 		        	// train 1 starts at the topStation
 		        	this.down=true;
 		        	// get semaphore for topStation
-		        	semaphores.get(CriticalArea.TopStation).acquire();
+		        	semaphores.get(CriticalArea.NorthStation).acquire();
 		        	
 		        	
 		        }
@@ -87,7 +87,7 @@ public class Lab1 {
 		        	// train 2 starts at the bottomStation
 		        	this.down=false;
 		        	// get semaphore for bottomStation
-		        	semaphores.get(CriticalArea.BottomStation).acquire();
+		        	semaphores.get(CriticalArea.SouthStation).acquire();
 
 		        }
 		        
@@ -122,7 +122,7 @@ public class Lab1 {
 				if(this.down) {
 					// going into cross section
 					this.tryAcquire(CriticalArea.Crossroad);
-					semaphores.get(CriticalArea.TopStation).release();	
+					semaphores.get(CriticalArea.NorthStation).release();	
 				}else {
 					// has been in cross section -> release semaphor
 					semaphores.get(CriticalArea.Crossroad).release();
@@ -148,25 +148,25 @@ public class Lab1 {
 			
 			// going into east section from the north
 			if(this.isEqualSensor(event, Sensor.NorthCenterTop2) && this.down) {
-				this.tryAcquire(CriticalArea.Right);
-				semaphores.get(CriticalArea.TopStation).release();
+				this.tryAcquire(CriticalArea.East);
+				semaphores.get(CriticalArea.NorthStation).release();
 				// set switch to UP
 				tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
 			}
 			if(this.isEqualSensor(event, Sensor.NorthCenterBottom2) && this.down) {
-				this.tryAcquire(CriticalArea.Right);
+				this.tryAcquire(CriticalArea.East);
 				// release possible semaphor for the other north station? 
 				tsi.setSwitch(17, 7, TSimInterface.SWITCH_LEFT);	
 			}	
 			
 			// going into east section from the south
 			if(this.isEqualSensor(event, Sensor.SouthCenterTop1) && !this.down) {
-				this.tryAcquire(CriticalArea.Right);
+				this.tryAcquire(CriticalArea.East);
 				semaphores.get(CriticalArea.Center).release(); // TODO release when the train is in the EAST 
 				tsi.setSwitch(15, 9, TSimInterface.SWITCH_RIGHT);
 			}
 			if(this.isEqualSensor(event, Sensor.SouthCenterBottom1) && !this.down) {
-				this.tryAcquire(CriticalArea.Right);
+				this.tryAcquire(CriticalArea.East);
 				// release possible semaphor for the other north station? 
 				tsi.setSwitch(15, 9, TSimInterface.SWITCH_LEFT);	
 			}
@@ -187,7 +187,7 @@ public class Lab1 {
 				// going into the NorthCenter section
 				else {
 					// try acquire the TopStation sem
-					if(semaphores.get(CriticalArea.TopStation).tryAcquire()) {
+					if(semaphores.get(CriticalArea.NorthStation).tryAcquire()) {
 						tsi.setSwitch(15, 9, TSimInterface.SWITCH_RIGHT);
 					}
 					// otherwise take the other route 
@@ -197,7 +197,7 @@ public class Lab1 {
 					
 				}
 				// release semaphore when leaving the area
-				semaphores.get(CriticalArea.Right).release();
+				semaphores.get(CriticalArea.East).release();
 			}
 			
 			// going into center section from the north - done in previous scope 
@@ -218,32 +218,32 @@ public class Lab1 {
 			// going into west section from north
 			if(this.isEqualSensor(event, Sensor.SouthCenterTop1) && this.down) {
 				System.out.println("sensor: southcentertop1: should stop");
-				this.tryAcquire(CriticalArea.Left);
+				this.tryAcquire(CriticalArea.West);
 				semaphores.get(CriticalArea.Center).release();
 				// set switch to UP
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
 			}
 			if(this.isEqualSensor(event, Sensor.SouthCenterBottom1) && this.down) {
-				this.tryAcquire(CriticalArea.Left);
+				this.tryAcquire(CriticalArea.West);
 				// release possible semaphor for the other north station? 
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);	
 			}	
 			// going into west section from south
 			if(this.isEqualSensor(event, Sensor.SouthTop) && !this.down) {
-				this.tryAcquire(CriticalArea.Left);
+				this.tryAcquire(CriticalArea.West);
 				// release possible sem? 
 				// set switch to UP
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
 			}
 			if(this.isEqualSensor(event, Sensor.SouthBottom) && !this.down) {
-				this.tryAcquire(CriticalArea.Left);
-				semaphores.get(CriticalArea.BottomStation).release();
+				this.tryAcquire(CriticalArea.West);
+				semaphores.get(CriticalArea.SouthStation).release();
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);	
 			}	
 			
 			if((this.isEqualSensor(event, Sensor.SouthCenterTop1) || this.isEqualSensor(event, Sensor.SouthCenterBottom1)) && !this.down) {
 				System.out.println("train has been in the south, train id: " + this.train_id);
-				semaphores.get(CriticalArea.Left).release();
+				semaphores.get(CriticalArea.West).release();
 			}
 			
 		}
