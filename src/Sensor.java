@@ -8,8 +8,10 @@ public enum Sensor {
 	NorthCenterBottom1(10,8),
 	NorthCenterBottom2(16,8),
 	East(19,8),
-	SouthCenterTop(10,9),
-	SouthCenterBottom(10,10),
+	SouthCenterTop2(14,9),
+	SouthCenterTop1(8,9),
+	SouthCenterBottom2(14,10),
+	SouthCenterBottom1(8,10),
 	West(1,10),
 	SouthTop(5,11),
 	SouthBottom(5,13);

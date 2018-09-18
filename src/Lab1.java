@@ -160,12 +160,12 @@ public class Lab1 {
 			}	
 			
 			// going into east section from the south
-			if(this.isEqualSensor(event, Sensor.SouthCenterTop) && !this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthCenterTop1) && !this.down) {
 				this.tryAcquire(CriticalArea.Right);
-				semaphores.get(CriticalArea.Center).release();
+				semaphores.get(CriticalArea.Center).release(); // TODO release when the train is in the EAST 
 				tsi.setSwitch(15, 9, TSimInterface.SWITCH_RIGHT);
 			}
-			if(this.isEqualSensor(event, Sensor.SouthCenterBottom) && !this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthCenterBottom1) && !this.down) {
 				this.tryAcquire(CriticalArea.Right);
 				// release possible semaphor for the other north station? 
 				tsi.setSwitch(15, 9, TSimInterface.SWITCH_LEFT);	
@@ -212,17 +212,18 @@ public class Lab1 {
 				else {
 					tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);
 				}
-				semaphores.get(CriticalArea.Left).release();
+				// release semaphor when the train has entered the center part 
 			}
 			
 			// going into west section from north
-			if(this.isEqualSensor(event, Sensor.SouthCenterTop) && this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthCenterTop1) && this.down) {
+				System.out.println("sensor: southcentertop1: should stop");
 				this.tryAcquire(CriticalArea.Left);
 				semaphores.get(CriticalArea.Center).release();
 				// set switch to UP
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
 			}
-			if(this.isEqualSensor(event, Sensor.SouthCenterBottom) && this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthCenterBottom1) && this.down) {
 				this.tryAcquire(CriticalArea.Left);
 				// release possible semaphor for the other north station? 
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);	
@@ -239,6 +240,11 @@ public class Lab1 {
 				semaphores.get(CriticalArea.BottomStation).release();
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);	
 			}	
+			
+			if((this.isEqualSensor(event, Sensor.SouthCenterTop1) || this.isEqualSensor(event, Sensor.SouthCenterBottom1)) && !this.down) {
+				System.out.println("train has been in the south, train id: " + this.train_id);
+				semaphores.get(CriticalArea.Left).release();
+			}
 			
 		}
 
