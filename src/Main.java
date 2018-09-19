@@ -34,7 +34,7 @@ public class Main {
         String tsimCommand = String.format("%s --speed=%d %s", tsim, tsim_speed, map);
         Process p = Runtime.getRuntime().exec(tsimCommand);
         TSimInterface.init(p.getInputStream(), p.getOutputStream());
-        TSimInterface.getInstance().setDebug(true);
+        TSimInterface.getInstance().setDebug(false);
         new Lab1(train1_speed, train2_speed);
         
         p.waitFor();

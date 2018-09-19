@@ -26,14 +26,13 @@ public class Lab1 {
 //      e.printStackTrace();    // or only e.getMessage() for the error
 //      System.exit(1);
 //    }
-	  System.out.println(CriticalArea.NorthStation.id);
+	  
 	  
 	  // Create semaphore for all critical areas
 	  // Semaphore semaphore = new Semaphore(1);
 	  
 	  
 	  for( CriticalArea area : CriticalArea.values()) {
-		  System.out.println(area);
 		  semaphores.put(area, new Semaphore(1));
 	  }
 	  
@@ -61,16 +60,16 @@ public class Lab1 {
 		private int train_speed;
 		private boolean down;
 		private int train_slowdown = 0;
-		private CriticalArea selectedCriticalArea;
-		private CriticalArea prevSelectedCriticalArea;
-		private boolean acquiredNewSemaphore;
-		
+		// states for who got the semaphore where there is two possible paths
+		private boolean gotNorth;
+		private boolean gotSouth;
+		private boolean gotCenter;
 		
 		public Train(int train_id, int train_speed) {
 			tsi = TSimInterface.getInstance();
 			this.train_id = train_id;
-			this.train_speed = train_speed;
-			
+			this.train_speed = train_speed;	
+			this.gotCenter = false;
 		}
 		
 		public void run() {
@@ -83,6 +82,7 @@ public class Lab1 {
 		        	this.down=true;
 		        	// get semaphore for topStation
 		        	semaphores.get(CriticalArea.NorthStation).acquire();
+		        	this.gotNorth = true;
 		        	
 		        	
 		        }
@@ -91,6 +91,7 @@ public class Lab1 {
 		        	this.down=false;
 		        	// get semaphore for bottomStation
 		        	semaphores.get(CriticalArea.SouthStation).acquire();
+		        	this.gotSouth = true;
 
 		        }
 		        
@@ -113,7 +114,7 @@ public class Lab1 {
 		}
 
 		private void handleSensorEvent(SensorEvent event) throws CommandException, InterruptedException {
-			System.out.println(event);
+			//System.out.println(event);
 			
 			// --------------- NORTH SECTION (from north)
 
@@ -129,12 +130,12 @@ public class Lab1 {
 			}
 			// (Crossroad) -> North
 			if((this.isEqualSensor(event, Sensor.NorthTop) || this.isEqualSensor(event, Sensor.NorthBottom) ) && !this.down) {
-				semaphores.get(CriticalArea.Crossroad).release();
+				this.release(CriticalArea.Crossroad);
 			}
 
 			// (Crossroad) -> NorthCenter
 			if((this.isEqualSensor(event, Sensor.NorthCenterTop1) || this.isEqualSensor(event, Sensor.NorthCenterBottom1) ) && this.down) {
-					semaphores.get(CriticalArea.Crossroad).release();	
+				this.release(CriticalArea.Crossroad);	
 			}
 			// NorthCenter -> Crossroad
 			if((this.isEqualSensor(event, Sensor.NorthCenterTop1) || this.isEqualSensor(event, Sensor.NorthCenterBottom1) ) && !this.down) {
@@ -154,7 +155,10 @@ public class Lab1 {
 			
 			// (NorthStation / NorthCenterTop) -> East   
 			if(this.isEqualSensor(event, Sensor.East) && this.down) {
-				semaphores.get(CriticalArea.NorthStation).release();
+				if(this.gotNorth) {
+					this.release(CriticalArea.NorthStation);
+					this.gotNorth = false;
+				}
 			}
 			
 			
@@ -162,12 +166,15 @@ public class Lab1 {
 
 			// (East) -> NorthCenter
 			if((this.isEqualSensor(event, Sensor.NorthCenterTop2) || this.isEqualSensor(event, Sensor.NorthCenterBottom2)) && !this.down) {
-				semaphores.get(CriticalArea.East).release();
+				this.release(CriticalArea.East);
 			}
+			
 			// East -> NorthCenter
 			if(this.isEqualSensor(event, Sensor.East) && !this.down) {
 				// two possible roads
 				if(semaphores.get(CriticalArea.NorthStation).tryAcquire()) {
+					this.gotNorth = true;
+					System.out.print("aquire northstation, traid_id: " + this.train_id);
 					tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
 				}
 				// otherwise take the other route 
@@ -175,10 +182,14 @@ public class Lab1 {
 					tsi.setSwitch(17, 7, TSimInterface.SWITCH_LEFT);
 				}				
 			}	
+			
 			// East -> SouthCenter
 			if(this.isEqualSensor(event, Sensor.East) && this.down) {
+				System.out.println("EAST SENSOR");
 				// two possible roads
 				if(semaphores.get(CriticalArea.Center).tryAcquire()) {
+					this.gotCenter = true;
+					System.out.println("should have center");
 					tsi.setSwitch(15, 9, TSimInterface.SWITCH_RIGHT);
 				}
 				// otherwise take the other route 
@@ -188,7 +199,7 @@ public class Lab1 {
 			}
 			// (East) -> SouthCenter
 			if((this.isEqualSensor(event, Sensor.SouthCenterTop2) || this.isEqualSensor(event, Sensor.SouthCenterBottom2)) && this.down) {
-				semaphores.get(CriticalArea.East).release();
+				this.release(CriticalArea.East);
 			}
 			
 			// --------------- CENTER SECTION (from center)
@@ -214,31 +225,48 @@ public class Lab1 {
 				tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);
 			}
 			
+			// (Center) -> West
+			if(this.isEqualSensor(event, Sensor.West) && this.down) {
+				if(this.gotCenter) {
+					this.release(CriticalArea.Center);
+					this.gotCenter = false;
+				}
+			}
+			// (Center) -> East
+			if(this.isEqualSensor(event, Sensor.East) && !this.down) {
+				if(this.gotCenter) {
+					this.release(CriticalArea.Center);
+					this.gotCenter = false;
+
+				}			
+			}
+			
 			// --------------- WEST SECTION (from west)
 			// (West) -> SouthCenter
 			if((this.isEqualSensor(event, Sensor.SouthCenterTop1) || this.isEqualSensor(event, Sensor.SouthCenterBottom1))&& !this.down) {
-				semaphores.get(CriticalArea.West).release();
+				this.release(CriticalArea.West);
 			}
 			// (West) -> SouthStation
 			if((this.isEqualSensor(event, Sensor.SouthTopStation) || this.isEqualSensor(event, Sensor.SouthBottomStation))&& this.down) {
-				semaphores.get(CriticalArea.West).release();
+				this.release(CriticalArea.West);
 			}
 			
 			// West -> SouthCenter
-			if(this.isEqualSensor(event, Sensor.West) && !this.down) {
-				// two possible roads
-				if(semaphores.get(CriticalArea.Center).tryAcquire()) {
-					tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
-				}
-				// otherwise take the other route 
-				else {
-					tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);
-				}		
+			if(this.isEqualSensor(event, Sensor.West) && !this.down) {	
+	            if (semaphores.get(CriticalArea.Center).tryAcquire()) {
+	            	this.gotCenter = true;
+	            	System.out.println("should have center, train_id: " + this.train_id);
+	            	tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
+	            } else {
+	              tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);
+	            }
 			}
+
 			// West -> SouthStation
 			if(this.isEqualSensor(event, Sensor.West) && this.down) {
 				// two possible roads
 				if(semaphores.get(CriticalArea.SouthStation).tryAcquire()) {
+					this.gotSouth = true;
 					tsi.setSwitch(3, 11, TSimInterface.SWITCH_LEFT);
 				}
 				// otherwise take the other route 
@@ -249,20 +277,33 @@ public class Lab1 {
 
 			// --------------- SOUTH SECTION (from SouthStations)
 			// SouthStationTop -> West
-			if(this.isEqualSensor(event, Sensor.SouthTopStation) && !this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthTop) && !this.down) {
 				this.tryAcquire(CriticalArea.West);
 				tsi.setSwitch(3, 11, TSimInterface.SWITCH_LEFT);
 			}
 			// SouthStationBottom -> West
-			if(this.isEqualSensor(event, Sensor.SouthBottomStation) && !this.down) {
+			if(this.isEqualSensor(event, Sensor.SouthBottom) && !this.down) {
 				this.tryAcquire(CriticalArea.West);
 				tsi.setSwitch(3, 11, TSimInterface.SWITCH_RIGHT);
 			}
+			// (SouthStation Top) -> West
+			if(this.isEqualSensor(event, Sensor.West) && !this.down) {
+				if(this.gotSouth) {
+					this.release(CriticalArea.SouthStation);
+					this.gotSouth = false;
+				}
+			}
+			
 			// SouthStation
 			if((this.isEqualSensor(event, Sensor.SouthTopStation) || this.isEqualSensor(event, Sensor.SouthBottomStation) ) && this.down) {
 				this.enterStation();
 			}
 			
+		}
+
+		private void release(CriticalArea ca) {
+			semaphores.get(ca).release();
+			System.out.println("release: " + ca+ " train_id: " + this.train_id);	
 		}
 
 		private void enterStation() throws CommandException, InterruptedException {
@@ -287,6 +328,7 @@ public class Lab1 {
 			tsi.setSpeed(train_id, train_slowdown);
 			// try to acquire semaphore
 			semaphores.get(ca).acquire();
+			System.out.println("acquire: " + ca + " train_id: " + this.train_id);
 			// set speed
 			tsi.setSpeed(train_id, train_speed);	
 			// set the correct state
@@ -297,9 +339,3 @@ public class Lab1 {
 	}
 
 }
-
-
-
-
-
-// question: using streams within a thread ? 
