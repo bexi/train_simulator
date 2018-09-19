@@ -253,6 +253,7 @@ public class Lab1 {
 
 		private void release(CriticalArea ca) {
 			semaphores.get(ca).release();
+			
 			//System.out.println("release: " + ca + " train_id: " + this.train_id);	
 		}
 
@@ -260,7 +261,7 @@ public class Lab1 {
 			// slow down
 			tsi.setSpeed(train_id, 0);
 			// pause at station
-			Thread.sleep(2000);
+			Thread.sleep(this.calculatePauseAtStation(this.train_speed));
 			// change direction 	
 		    this.train_speed = -this.train_speed;
 		    this.down = !this.down;
@@ -277,9 +278,14 @@ public class Lab1 {
 			tsi.setSpeed(train_id, train_slowdown);
 			// try to acquire semaphore
 			semaphores.get(ca).acquire();
-			System.out.println("acquire: " + ca + " train_id: " + this.train_id);
 			// set speed
 			tsi.setSpeed(train_id, train_speed);	
+			
+			//System.out.println("acquire: " + ca + " train_id: " + this.train_id);
+		}
+		
+		private long calculatePauseAtStation(int train_speed) {
+			return 1000 + (20 * Math.abs(train_speed));
 		}
 	}
 }
