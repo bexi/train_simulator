@@ -247,7 +247,7 @@ public class Lab1 {
 				this.release(CriticalArea.West);
 			}
 			// (West) -> SouthStation
-			if((this.isEqualSensor(event, Sensor.SouthTopStation) || this.isEqualSensor(event, Sensor.SouthBottomStation))&& this.down) {
+			if((this.isEqualSensor(event, Sensor.SouthTop) || this.isEqualSensor(event, Sensor.SouthBottom))&& this.down) {
 				this.release(CriticalArea.West);
 			}
 			
