@@ -7,13 +7,24 @@ import TSim.*;
 public class Lab1 {
 	
 	// Semaphores for the critical areas, e.i. areas where there can only be one train at a time 
-	public Map<CriticalArea, Semaphore> semaphores = new EnumMap<CriticalArea, Semaphore>(CriticalArea.class);
+	private Map<CriticalArea, Semaphore> semaphores = new EnumMap<CriticalArea, Semaphore>(CriticalArea.class);
+	private int maxSpeed = 15;
 	
 	public Lab1(int speed1, int speed2) {
 		// Create the actual semaphores for the CriticalArea enums 
 		for( CriticalArea area : CriticalArea.values()) {
 			semaphores.put(area, new Semaphore(1));
 		}
+		// max speed is 15
+		if(speed1>this.maxSpeed) {
+			speed1 = this.maxSpeed;
+			System.out.println("Wanted speed is over the maxSpeed. Speed is set to: " + this.maxSpeed);
+		}
+		if(speed2>this.maxSpeed) {
+			speed2 = this.maxSpeed;
+			System.out.println("wanted speed is over the maxSpeed. Speed is set to: " + this.maxSpeed);
+		}
+		
 		// Create the two trains for the simulation
 		Train train1 = new Train(1, speed1);
 		train1.start();
