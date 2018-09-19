@@ -142,7 +142,6 @@ public class Lab1 {
 				// two possible roads
 				if(semaphores.get(CriticalArea.NorthStation).tryAcquire()) {
 					this.gotNorth = true;
-					System.out.print("aquire northstation, traid_id: " + this.train_id);
 					tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
 				}
 				// otherwise take the other route 
@@ -152,11 +151,9 @@ public class Lab1 {
 			}	
 			// East -> SouthCenter
 			if(this.isEqualSensor(event, Sensor.East) && this.down) {
-				System.out.println("EAST SENSOR");
 				// two possible roads
 				if(semaphores.get(CriticalArea.Center).tryAcquire()) {
 					this.gotCenter = true;
-					System.out.println("should have center");
 					tsi.setSwitch(15, 9, TSimInterface.SWITCH_RIGHT);
 				}
 				// otherwise take the other route 
@@ -219,7 +216,6 @@ public class Lab1 {
 			if(this.isEqualSensor(event, Sensor.West) && !this.down) {	
 	            if (semaphores.get(CriticalArea.Center).tryAcquire()) {
 	            	this.gotCenter = true;
-	            	System.out.println("should have center, train_id: " + this.train_id);
 	            	tsi.setSwitch(4, 9, TSimInterface.SWITCH_LEFT);
 	            } else {
 	              tsi.setSwitch(4, 9, TSimInterface.SWITCH_RIGHT);
@@ -263,9 +259,7 @@ public class Lab1 {
 		}
 
 		private void release(CriticalArea ca) {
-			semaphores.get(ca).release();
-			
-			//System.out.println("release: " + ca + " train_id: " + this.train_id);	
+			semaphores.get(ca).release();			
 		}
 
 		private void enterStation() throws CommandException, InterruptedException {
@@ -290,9 +284,7 @@ public class Lab1 {
 			// try to acquire semaphore
 			semaphores.get(ca).acquire();
 			// set speed
-			tsi.setSpeed(train_id, train_speed);	
-			
-			//System.out.println("acquire: " + ca + " train_id: " + this.train_id);
+			tsi.setSpeed(train_id, train_speed);						
 		}
 		
 		private long calculatePauseAtStation(int train_speed) {
